@@ -1,0 +1,20 @@
+  DOOMMY VOXEL ENGINE v0.9993 - voxel based game engine 
+  which uses only CPU for rendering and Lua for scripting.
+
+  COPYRIGHT (C) 2012 jabberx@ymail.com
+
+                        BUILDING
+
+To compile this program you need SDL_1.2 and Lua5.1 or LuaJIT-2.0.
+
+There's no makefile yet. Compilation line may look like this:
+  gcc -s -lSDL -lSDLmain -llua5.1 -lm -O3 -msse2 -ffast-math doommy.c -o doommy
+
+If you're compiling under Windows using Visual Studio 10, add next keys to compiler:
+  /arch:SSE2 /fp:fast /Ox /Ot    
+And add this libs to linker: 
+  SDL.lib SDLmain.lib lua51.lib
+
+Usage:
+  doommy script.lua
+By default, doommy runs game.lua from same directory.

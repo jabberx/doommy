@@ -1,0 +1,630 @@
+  DOOMMY VOXEL ENGINE v0.9993 - voxel based game engine 
+  which uses only CPU for rendering and Lua for scripting.
+
+  COPYRIGHT (C) 2012 jabberx@ymail.com
+
+                        MANUAL  
+  
+About
+-----
+This is a voxel-based game engine. It's core written in C,
+Lua is used for scripting, SDL used for window creation, 
+input handling and graphics output. proteaAudio is used 
+in one example and is recommended as sound system for your game.
+Doommy Voxel Engine is licensed under GPL v3 (see COPYING.txt).
+For build information see BUILDING.txt
+
+What does it look like, what benefits it has?
+---------------------------------------------
+Looks like Voxlap, but uses different algorithm and has 
+somewhat crappy quality.
+
+Key benefits are:
+- engine is cross-platform
+- no 3d-acceleration needed, only CPU used for rendering
+- easy to use (only basic Lua knowledge needed to write 
+your game or editor or landscape generator or any other 
+voxel-related application)
+- absolutely free of charge for commercial and non-commercial 
+usage, and also free in terms of freedom (GPL v3)
+
+System requirements:
+--------------------
+Depends on building keys. Recommended to use SSE2 and fast
+floating point operations, so such CPUs as Intel Atom/
+Intel Celeron [M/D]/Intel Xeon/Intel Pentium 4/Intel Core, 
+K-8 based and higher AMDs: Sempron/Athlon 64/Phenom/Opteron
+/Turion are required.
+Minimal comfortable CPU frequency is 1.5 Ghz (suitable for 
+low quality() option).
+
+Usage:
+------
+doommy script_name.lua
+(if no argument passed, it tries to run game.lua)
+
+Examples:
+---------
+See examples folder. Examples show how to make main cycle,
+how to generate level, how to implement shading, collision
+detection, "mouselook", camera motion, input handling.
+Example3 also contains pre-generated level, music, sounds
+and images. Read examples\README-examples.txt
+
+Writing your scripts:
+---------------------
+See <http://lua.org/> for Lua language basics. This section
+contains only engine's Lua API and some notes. Most functions 
+names should be self-explanatory.
+
+setup_fullscreen()
+
+setup_window()
+
+  About window size/screen resolution: it is always 640x480.
+
+handle_sdl_events() - essential command for your app's main loop.
+The app will "hang" without it. Info for is_key_pressed command
+is updated only after handle_sdl_events() call.
+
+ms = get_tick_count() - time in milliseconds passed from program 
+start.
+
+set_window_title('title')
+
+draw_fps(fps) - draws fps in top left corner.
+
+draw_voxels() - renders current voxel level.
+
+draw_camera_pos() - draws camera position in top left corner.
+Values over 1000 are cropped.
+
+sdl_delay(ms) - delay in milliseconds.
+
+x,y = get_mouse_xy() - relative to window.
+
+set_mouse_xy(x,y) - relative to window.
+
+set_cam_yaw(yaw) - set cam rotation in degrees for Y-axis. Keep
+this value in range 0...359.
+
+set_cam_pitch(pitch) - set cam rotation in degrees for X-axis. 
+It is common in games to cap it: -90..90.
+
+set_cam_pos(x,y,z) - update camera position in engine.
+
+b = cam_collides() - built-in function, checks for collision with
+some margin. apply set_cam_pos(..) before using it. You may want
+to write your own collision function in Lua.
+
+x,y,z = get_pointed_voxel_pos() - get voxel position, hit by
+viewing ray.
+
+b = is_voxel_empty(x,y,z) - returns 1 if x,y,z voxel is empty.
+
+erase_voxel(x,y,z) - make voxel empty (0).
+
+i = get_voxel_pal(x,y,z) - get voxels color (palette index).
+Indexes ranges from 1 to 255 inclusive, 0 means empty voxel.
+
+  About palette: voxel levels stored with indexed palette (1 byte
+  for each voxel). Default palette is adapted for smooth lightness
+  transitions of limited color tones:
+  0 - not used for color, representing empty voxel
+  1-32 - from black to white
+  33-64 - from dark red to light red
+  65-96 - from dark green to light green
+  97-128 - from dark blue to light blue
+  129-160 - from dark cyan to light cyan
+  161-192 - from dark pink to light pink
+  193-224 - from dark yellow to light yellow
+  225-255 - from dark brown to orange
+  Each level stores it's palette in the end of file. There is
+  command to edit palette of loaded or created level, see below.
+
+r,g,b = get_voxel_rgb(x,y,z)
+
+set_voxel_pal(x,y,z,index) - set another color index to voxel. 
+If 0 is passed, voxel will be erased.
+
+set_voxel_rgb(x,y,z,r,g,b) - finds nearest color from palette
+and assigns it's index to voxel.
+
+x,y,z = get_view_ray() - returns normalized view ray
+
+announce_chunk_updates() - do this before any updates once 
+update_chunk(x,y,z) - update chunk (piece of level with 
+dimensions 32x32x32), to which x,y,z voxel relates.
+
+About chunk updates: after you've changed anything in voxel 
+level, you must update altered chunks, otherwise engine won't
+be able to render them properly. Each update_chunk(..) 
+if effective only once for every chunk, so do all updates at
+the end of your loop, after all changes was made. 
+announce_chunk_updates() makes possible to update arleady 
+updated chunks again. Call this each time in your loop 
+before block with updates.
+
+update_all_chunks() - useful when you've generated whole level.
+Consumes some time, progress will be shown in title, so you
+need to set new title after completion.
+
+remove_isolated_voxels() - removes voxels totally surrounded 
+with non-empty voxels. This operation can't speed up rendering,
+but level can be compressed better with some archivers.
+
+b = is_key_pressed(keynum) - returns 1 otherwise returns 0. 
+There is no EVENTS in Doommy, only states, but this isn't a problem.
+You can find key numbers in the end of this document.
+
+  NOTE - 1 isn't the same as true. Doommy's Lua functions never 
+  returns anything other than numbers, so 
+  if is_key_pressed(key) then ... end won't work! use ==1 comparison.
+
+fake_key_state(keynum,state) - sometimes you need to react only
+when key was pressed and ignore that fact that key is still 
+being hold. handle_events() won't set the state for holded keys,
+it only sets 1 for pressed, and 0 for released and you can fake
+that states with fake_key_state.
+
+b = is_button_pressed(N) - returns 1, if mouse button is pressed.
+Numbers: left=0, middle=1, right=2, wheel up=3, wheel down=4.
+
+fake_button_state(N,state) - see fake_key_state(..)
+
+show_sdl_cursor()
+
+hide_sdl_cursor()
+
+screen_set_pixel(x,y,r,g,b) - you should only know, that 0,0 
+for this function and for circles/lines is located in lower 
+left screen/window corner. For images and rects 0,0 will be 
+in top left corner.
+Program will fall if you're out of 0..639,0..479 range;
+
+screen_set_pixel32(x,y,32bitcolor)
+
+screen_clear(r,g,b)
+
+screen_fill_rect(x,y,w,h,r,g,b) or (x,y,w,h,32bitcolor) - draws
+filled rectangle on screen (0,0 - top left).
+
+screen_draw_circle(x,y,radius,r,g,b) or (x,y,radius,32bitcolor) - 
+draws circle (0,0 - bottom left).
+
+screen_draw_line(x,y,x2,y2,r,g,b) or (x,y,x2,y2,32bitcolor) - 
+draw line (0,0 - bottom left).
+
+b = load_level_from_file(xsize,ysize,zsize,filename) - returns -1 
+in case of error, 0 if ok. Current level dissapears.
+
+load_empty_level(xsize,ysize,zsize) - creates in memory new 
+empty level with default palette. Current level dissapears.
+
+save_level_to_file(filename) - saves current level with all changes
+to voxels and palette into file.
+
+  About level format and size: only voxel bytes and palette 
+  are stored. Palette size 255*3 bytes (r,g,b,r,g,b,r,g,b....)
+  So, level file size will be xsize*ysize*zsize + 765 bytes.
+  You must somehow remember level dimensions by yourself.
+  Allowed dimensions: minimal - 64x64x64, dimension should be
+  divided by 32 without rest: 64, 128, 160, 256, 1024 e t.c. 
+  Maximum level size is limited only by your computers RAM and
+  maximum level size allowed by your OS.
+  Depending on game type you may want to split your game to
+  separate levels. Level with dimension 256x128x256 can contain
+  five floors building or small piece of forest with two trees - 
+  this depends on abstract scaling you choose. Such level will
+  take 8Mb disk space (around 1Mb if compressed with 7z), and
+  ~10-11Mb RAM (because +33% will be allocated for algorithm needs).
+
+save_patch_to_file(x,y,z,x2,y2,z2,filename) - saves part of current
+level from memory to filename. x2,y2,z2 - is inclusive. 
+Requirements: x2>=x, y2>=y, z2>=z, x,y,z>=0, x,y,z<xsize,ysize,zsize 
+No palette, dimensions or other information will be saved, just plain
+voxel bytes, so you must remember to which level this patch relates,
+and what size it has.
+
+load_patch_from_file(x,y,z,x2,y2,z2,filename) - loads previously 
+saved patch to given bbox. Unsafe, as save_patch_to_file. Check
+everything carefully.
+
+  NOTE: If you don't like long function names, do this at the 
+  beginning of your script: load_patch = load_patch_from_file
+
+erase_box(x,y,z,x2,y2,z2)
+
+fill_box_with_rgb(x,y,z,x2,y2,z2,r,g,b)
+
+fill_box_with_index(x,y,z,x2,y2,z2,index)
+
+fill_box_with_noisy_rgb(x,y,z,x2,y2,z2,r,g,b,intensity) - intensity -
+is maximum random decrease of index.
+
+fill_box_with_noisy_index(x,y,z,x2,y2,z2,index,intensity) - same as
+above, but you pass index directly, not through r,g,b.
+
+erase_sphere(x,y,z,radius) - this is safe (does boundary checks)
+
+  REMEMBER: all this (box/sphere/patch) functions change voxels. 
+  To apply that changes you must also update chunks. The only 
+  exception is next function: erase_sphere_shaded(x,y,z,r,g,b) - 
+  it does updates automatically, but is deprecated.
+
+fill_sphere_with_rgb(x,y,z,radius,r,g,b)
+
+fill_sphere_with_index(x,y,z,radius,index)
+
+fill_sphere_with_noisy_rgb(x,y,z,rad,r,g,b,intensity)
+
+fill_sphere_with_noisy_index(x,y,z,rad,index,intensity)
+
+set_max_dist(maxdist) - sets view/fog distance. Default is 512,
+but it is too much. For better depth perception you may want
+to set lower values especially for levels without shading.
+
+set_fog_rgb(r,g,b)
+
+  About r,g,b: here r,g,b means values 0..255
+
+swap_buffers() - call this function after you've rendered everything
+you wanted. Without this function you will see nothing.
+
+set_palette(index,r,g,b) - change palette color of selected index.
+Index - from 1 до 255. You should know, that after this operation 
+commands with rgb suffixes won't work properly unless you call 
+reinit_palette() (somewhat slow, don't call often).
+
+  Again about palette: when you create new empty level, default 
+  palette loads. When you save some level, current palette 
+  saves with it. When you load level, it's palette loads with it.
+
+draw_3d_pixel(x,y,z,r,g,b) - projects 3d point on screen and draws
+as pixel if it passes z-buffer. x,y,z may be float values.
+
+  NOTE: There's no point to call draw_3d..., draw_image, draw_line 
+  before draw_voxels(), cause draw_voxels() will cover all screen.
+
+draw_3d_quad(x,y,z,r,g,b,scale_divider,max_quad_size) - projects
+3d point/voxel and draws it as quad, which increases it's size
+when camera approaches. You should increase scale_divider 
+(normal value - 2) when points located more closely (0.5, 1, 1.5).
+max_quad_size - after reaching this width quad will stop to grow.
+draw_3d_quad suitable for drawing weapons/tools, animated enemys,
+items and particle effects.
+About performance: attempt to render ~25000 such quads can cause
+double FPS fall. ~12500 квадратов - one and half, ~2000-4000 is
+good, ~500-1000 - almost unnoticeable.
+
+draw_3d_wire(x,y,z,x2,y2,z2,r,g,b) - projects two 3d points to
+screen and draws line without depth-testing if points are on
+screen. Divide big lines into smaller segments.
+
+low_quality() - essential options for slow computers such as
+old netbooks. Makes voxel resolution lower and greatly increases
+frames per seconds. Always leave in your game a way to turn this
+option on.
+
+med_quality() - restores normal resolution. There's no high_quality
+setting yet.
+
+take_screenshot(filename) - saves screenshot as bmp
+
+reset_palette() - loads default palette described above.
+
+force_single_thread() - by default on double core CPUs all two 
+cores are used. You can switch that off with this command if
+one core is powerful enough (3GHz). As benefit - some artifacts 
+at the left side of screen will dissapear, but everything will 
+be two times slower.
+
+img_id = load_image(filename,magenta_transparent?) - loads BMP 
+into memory and returns pointer to it. If you pass 1 as 
+magenta_transparent, magenta (FF00FF) pixels will be considered
+transparent while blitting this image.
+
+draw_image(x,y,imageID) - 0,0 - in top left.
+
+draw_image_part(x,y,clip_x,clip_y,clip_w,clip_h,imageID) - may 
+be useful for spritesheets or bitmap fonts (Doommy has no built-in
+font).
+
+unload_image(imageID) - frees resource. Don't use this often or
+in a loop, because this may cause segmentation fault. The only
+reason to use this function - really big image (or series of
+images) loaded into memory and you don't need them anymore and
+want to free some RAM.
+
+set_image_pixel(x,y,r,g,b,imageID)
+
+r,g,b=get_image_pixel(x,y,imageID)
+
+n = perlin_noise_3d(x,y,z) - Perlin's noise. Useful to generate
+landscapes, caves, etc. Don't forget to multiply values by
+scaling, e.g. *0.02 otherwise you'll receive just noise. 
+Returns value in range -1.0..1.0
+
+b = is_focused() - returns 1 if window is in focus, otherwise - 0.
+
+disable_checkers()/enable_checkers() have no effect anymore, no point
+to disable this effect, because on powerful CPUs its hard to see it,
+and on slow CPUs this effect is saviour.
+
+x,y,z,index = throw_ray(dirx,diry,dirz,posx,posy,posz,max_dist) - 
+dir must be normalized. Returns voxel position that was hit by ray.
+If starting position is inside non-empty voxel, ray will stop 
+there. Returns 0 if ray reached max_dist and no voxels was found.
+
+Sound:
+------
+You can use proteaAudio, details here: 
+http://viremo.eludi.net/proteaAudio/proteaaudiolua.html
+
+Initialization might look like this:
+require("proAudioRt")
+proAudio.create(8,44100,1024)
+
+Loading samples:
+dig_sound = proAudio.sampleFromFile("data\\dig.wav")
+music = proAudio.sampleFromFile("data\\loop.ogg")
+
+Playing looped music (25% volume for both channels):
+proAudio.soundLoop (music, 0.25, 0.25)
+
+Playing one-shot sample:
+proAudio.soundPlay(dig_sound)
+
+Although it is beyond the scope of voxel engine's duites, here is
+example how to make 3d sound using proteaAudio:
+  --[[
+    3d sound example using proAudioRt
+    drive.wav in the same folder is required
+    Author: jabberx@ymail.com 
+    
+    You are free to use any part of this code 
+    in your programs.
+  ]]
+
+
+  function clamp(val,min,max)
+    if val<min then return min end
+    if val>max then return max end
+    return val
+  end
+
+  function cross(x,y,z, x2,y2,z2)
+    nx,ny,nz = y*z2-z*y2, z*x2-x*z2, x*y2-y*x2
+    return nx,ny,nz
+  end
+
+  function dot(x,y,z, x2,y2,z2)
+    return x*x2 + y*y2 + z*z2
+  end
+
+  function normalize(x,y,z)
+    ilen=1.0/math.sqrt(x*x+y*y+z*z)
+    return x*ilen, y*ilen, z*ilen
+  end
+
+  function distance(x,y,z, x2,y2,z2)
+    return math.sqrt(math.pow(x-x2,2)+math.pow(y-y2,2)+math.pow(z-z2,2))
+  end
+
+  function compute_lrt_3d(sx,sy,sz, px,py,pz, lx,ly,lz, dx,dy,dz, 
+        ux,uy,uz, vol, delta_time)
+    dux,duy,duz = cross(dx,dy,dz, ux,uy,uz)
+    dux,duy,duz = normalize(dux,duy,duz)
+    slx,sly,slz = normalize(sx-lx,sy-ly,sz-lz)
+    pan = -dot(dux,duy,duz, slx,sly,slz) 
+    power,left,right = 1,1,1
+    if pan>0 then left = 1 - pan end
+    if pan<0 then right = 1 + pan end 
+    dist = distance(sx,sy,sz, lx,ly,lz)
+    if dist~=0 then power = math.sqrt(1.0/dist) end 
+    power = clamp(power,0,1)
+    dist2 = distance(px,py,pz, lx,ly,lz) 
+    tone = clamp(1+(dist2-dist)*delta_time,0.5,2) 
+    return left*power*vol,right*power*vol,tone
+  end
+
+  function main()
+    -- open audio device
+    require("proAudioRt")
+    proAudio.create(8,44100,1024)
+
+    -- load and play sound loop
+    sample = proAudio.sampleFromFile("drive.wav")
+    id = proAudio.soundLoop(sample)
+
+    -- init variables
+    lx,ly,lz = 0,0,0 -- listener position
+    dx,dy,dz = 0,0,1 -- listener direction
+    ux,uy,uz = 0,1,0 -- upvector
+    sx,sy,sz = 0,0,0 -- initial sound position
+    px,py,pz = 0,0,0 -- for storing previous sound position
+    vol = 1 -- sound volume
+
+    k = 0.01
+    delay = 0.016
+
+    for c = 0,1500 do
+    -- saving previous sound position
+    px,py,pz = sx,sy,sz
+
+    -- computing new sound position
+
+    -- test 1 - round racing
+    if c==0 then print('test1') end
+    if c<500 then
+    k = k+0.02
+    sx = math.sin(k)*500
+    sz = math.cos(k)*100
+    end 
+
+    -- test 2 - diagonal flight
+    if c==500 then print('test2') end
+    if c==500 then sx,sy,sz = -250,0,-250 end 
+    if c>500 and c<1000 then
+    sx = sx + 1
+    sy = sy + 1
+    sz = sz + 4
+    end
+
+    -- test 3 - road passing
+    if c==1000 then print('test3') end
+    if c==1000 then sx,sy,sz = -800,0,-25 end 
+    if c>1000 then
+    sx = sx + 5
+    end
+
+    -- computing panning and tone (Doppler effect)
+    l,r,t = compute_lrt_3d(sx,sy,sz, px,py,pz, 
+      lx,ly,lz, dx,dy,dz, ux,uy,uz, vol, delay)
+
+    -- adjusting sound parameters
+    proAudio.soundUpdate(id, l, r, 0, t)
+
+    -- sleep
+    proAudio.sleep(delay)
+
+    -- echoing sound position
+    -- print(sx.." "..sy.." "..sz) 
+    end
+  end
+
+  main()
+
+Some troubleshooting:
+---------------------
+Window showed and dissapeared, what to do? - Read error.log, 
+check function and variable names, maybe you made a mistake somewhere.
+
+Error "memory can't be read/write" on Windows, error.log is empty, 
+what to do? - likely you've tried to access memory you don't have
+right to access. For example, out of boundaries of some array
+(level/patches/palette/screen/BMP pixels etc).
+
+Key numbers:
+------------
+BACKSPACE = 0
+TAB = 1
+CLEAR = 2
+ENTER = 3
+PAUSE = 4
+ESCAPE = 5
+SPACE = 6
+EXCLAIM = 7
+QUOTEDBL = 8
+HASH = 9
+DOLLAR = 10
+AMPERSAND = 11
+QUOTE = 12
+LEFTPAREN = 13
+RIGHTPAREN = 14
+ASTERISK = 15
+PLUS = 16
+COMMA = 17
+MINUS = 18
+PERIOD = 19
+SLASH = 20
+KEY_0 = 21
+KEY_1 = 22
+KEY_2 = 23
+KEY_3 = 24
+KEY_4 = 25
+KEY_5 = 26
+KEY_6 = 27
+KEY_7 = 28
+KEY_8 = 29
+KEY_9 = 30
+COLON = 31
+SEMICOLON = 32
+LESS = 33
+EQUALS = 34
+GREATER = 35
+QUESTION = 36
+AT = 37
+LEFTBRACKET = 38
+BACKSLASH = 39
+RIGHTBRACKET = 40
+CARET = 41
+UNDERSCORE = 42
+BACKQUOTE = 43
+KEY_a = 44
+KEY_b = 45
+KEY_c = 46
+KEY_d = 47
+KEY_e = 48
+KEY_f = 49
+KEY_g = 50
+KEY_h = 51
+KEY_i = 52
+KEY_j = 53
+KEY_k = 54
+KEY_l = 55
+KEY_m = 56
+KEY_n = 57
+KEY_o = 58
+KEY_p = 59
+KEY_q = 60
+KEY_r = 61
+KEY_s = 62
+KEY_t = 63
+KEY_u = 64
+KEY_v = 65
+KEY_w = 66
+KEY_x = 67
+KEY_y = 68
+KEY_z = 69
+DEL = 70
+KP0 = 71
+KP1 = 72
+KP2 = 73
+KP3 = 74
+KP4 = 75
+KP5 = 76
+KP6 = 77
+KP7 = 78
+KP8 = 79
+KP9 = 80
+KP_PERIOD = 81
+KP_DIVIDE = 82
+KP_MULTIPLY = 83
+KP_MINUS = 84
+KP_PLUS = 85
+KP_ENTER = 86
+KP_EQUALS = 87
+UP = 88
+DOWN = 89
+RIGHT = 90
+LEFT = 91
+INSERT = 92
+HOME = 93
+END = 94
+PAGEUP = 95
+PAGEDOWN = 96
+F1 = 97
+F2 = 98
+F3 = 99
+F4 = 100
+F5 = 101
+F6 = 102
+F7 = 103
+F8 = 104
+F9 = 105
+F10 = 106
+F11 = 107
+F12 = 108
+F13 = 109
+F14 = 110
+F15 = 111
+NUMLOCK = 112
+CAPSLOCK = 113
+SCROLLOCK = 114
+RSHIFT = 115
+LSHIFT = 116
+RCTRL = 117
+LCTRL = 118
+RALT = 119
+LALT = 120
