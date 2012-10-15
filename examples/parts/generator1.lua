@@ -9,7 +9,9 @@
 ]]
 
 dofile('parts/fast_shade1.lua')
+dofile('parts/fast_shade2.lua')
 dofile('parts/shadow1.lua')
+dofile('parts/jaocc_shade.lua')
 
 function generator1(xsize,ysize,zsize)
   sca = 0.5
@@ -32,7 +34,7 @@ function generator1(xsize,ysize,zsize)
       height = height + mod2*4 + 32
             for y=0,ysize-1 do    
                 if math.abs(y-height)<4 then
-          set_voxel_pal(x,y,z,color-math.random(2))
+          set_voxel_pal(x,y,z,color-math.random(1))
         end
             end 
         end 
@@ -51,6 +53,9 @@ function generator1(xsize,ysize,zsize)
         end 
     end
   
-  fast_shade1(xsize,ysize,zsize)  
-  shadow1(1000,4000,1000, 5, xsize,ysize,zsize)  
+  --fast_shade1(xsize,ysize,zsize)
+  fast_shade2(xsize,ysize,zsize)
+  --jaocc_shade(2,0.5,xsize,ysize,zsize)
+  
+  shadow1(1000,3000,1000, 5, xsize,ysize,zsize)  
 end
