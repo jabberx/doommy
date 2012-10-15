@@ -1,5 +1,5 @@
 /*
-  DOOMMY VOXEL ENGINE v0.9993 - voxel based game engine 
+  DOOMMY VOXEL ENGINE - voxel based game engine 
   which uses only CPU for rendering and Lua for scripting.
 
   COPYRIGHT (C) 2012 jabberx@ymail.com
@@ -22,10 +22,10 @@
 #include <windows.h>
 #endif
 
-#include <lua.h>
+#include <lua.h>               // Lua5.1 or LuaJIT-2.0 used
 #include <lauxlib.h>
 #include <lualib.h>
-#include <SDL\SDL.h>
+#include <SDL\SDL.h>           // SDL_1.2 used
 #include <SDL\SDL_thread.h>
 
 #include <memory.h>
@@ -578,90 +578,49 @@ void ray_cast_thread(int startx, int endx) {
             pixel_set(sx*2+l,sy*2+d,fogR,fogG,fogB);
             lbuffer[sx*2+l + (sy*2+d)*WIDTH] = MAX_DIST; } } } } } }
 
-void cast_ray(float dirx, float diry, float dirz, 
+
+void cast_ray_to_dir(float dirx, float diry, float dirz, 
               float posx, float posy, float posz, float max_d,
               uint *destx, uint *desty, uint *destz, uchar *destcol) {
-  float divs[] = {0.2,0.3,0.4,0.8,1.5,1.8 };
-  float HQdiv2 = 7.5, HQdiv1 = 10, LQdiv2 = 1.5, LQdiv1 = 3;
-  int x_1 = xsize-1, y_1 = ysize-1, z_1 = zsize-1;
-  float dddx[5], dddy[5], dddz[5], div = divs[5];
   float len=0, lim=max_d; bool pixelset = false;
+  float cox,coy,coz; int lax,lay,laz;
   struct vec3f pos = {posx, posy, posz },
-         dir = {dirx, diry, dirz };
-  dddx[0] = dir.x/(divs[0]) + 0.5f;
-  dddx[1] = dir.x/(divs[1]) + 0.5f; dddx[2] = dir.x/(divs[2]) + 0.5f;
-  dddx[3] = dir.x/(divs[3]) + 0.5f; dddx[4] = dir.x/(divs[4]) + 0.5f;
-  dddy[0] = dir.y/(divs[0]) + 0.5f;
-  dddy[1] = dir.y/(divs[1]) + 0.5f; dddy[2] = dir.y/(divs[2]) + 0.5f;
-  dddy[3] = dir.y/(divs[3]) + 0.5f; dddy[4] = dir.y/(divs[4]) + 0.5f;
-  dddz[0] = dir.z/(divs[0]) + 0.5f;
-  dddz[1] = dir.z/(divs[1]) + 0.5f; dddz[2] = dir.z/(divs[2]) + 0.5f;
-  dddz[3] = dir.z/(divs[3]) + 0.5f; dddz[4] = dir.z/(divs[4]) + 0.5f;
+               dir = {dirx, diry, dirz };
+  pos.x += dir.x*2; pos.y += dir.y*2; pos.z += dir.z*2;
+  dir.x /= 2.0f; dir.y /= 2.0f; dir.z /= 2.0f;
+  if ((ABS(dir.x)>ABS(dir.y)) && (ABS(dir.x)>ABS(dir.z))){
+    cox = -1*(SIGN(dir.x)); coy = 0; coz = 0; }
+  if ((ABS(dir.y)>ABS(dir.z)) && (ABS(dir.y)>ABS(dir.x))){
+    cox = 0; coy = -1*(SIGN(dir.y)); coz = 0; }
+  if ((ABS(dir.z)>ABS(dir.y)) && (ABS(dir.z)>ABS(dir.y))){
+    cox = 0; coy = 0; coz = -1*(SIGN(dir.z)); }
+  lax = pos.x + 0.5f; lay = pos.y + 0.5f; laz = pos.z + 0.5f;
   while(len<lim) {
-    uchar next, i;
+    uchar next, i, ii;
     int nx,ny,nz;
     int x = pos.x + 0.5f, y = pos.y + 0.5f, z = pos.z + 0.5f;
-    len += 1.0f/div;
+    len += 1;
     if(x>=0 && x<xsize && y>=0 && y<ysize && z>=0 && z<zsize) {
-      if(len<24) {
-        divs[4] = HQdiv2; divs[5] = HQdiv1; }
-      else {    divs[4] = LQdiv2; divs[5] = LQdiv1;}
-      i = _get32(x,y,z);
-      if(!i) {
-        N_NEXT(0); next = _get32(nx,ny,nz);
-        if(next) {
-          N_NEXT(1); next = _get16(nx,ny,nz);
-          if(next) {
-            N_NEXT(2); next = _get8(nx,ny,nz);
-            if(next) {
-              N_NEXT(3); next = _get4(nx,ny,nz);
-              if(next) {
-                N_NEXT(4); next=_get2(nx,ny,nz);
-                if(next) div = divs[5]; } } } } }
-      else {
-        i = _get16(x,y,z);
-        if(!i) {
-          N_NEXT(1); next = _get16(nx,ny,nz);
-          if(next) {
-            N_NEXT(2); next = _get8(nx,ny,nz);
-            if(next) {
-              N_NEXT(3); next = _get4(nx,ny,nz);
-              if(next) {
-                N_NEXT(4); next=_get2(nx,ny,nz);
-                if(next) div = divs[5]; } } } }
-        else {
-          i = _get8(x,y,z);
-          if(!i) {
-            N_NEXT(2); next = _get8(nx,ny,nz);
-            if(next) {
-              N_NEXT(3); next = _get4(nx,ny,nz);
-              if(next) {
-                N_NEXT(4); next=_get2(nx,ny,nz);
-                if(next) div = divs[5]; } } }
-          else {
-            i = _get4(x,y,z);
-            if(!i) {
-              N_NEXT(3); next = _get4(nx,ny,nz);
-              if(next) {
-                N_NEXT(4); next=_get2(nx,ny,nz);
-                if(next) div = divs[5]; } }
-            else {
-              i = _get2(x,y,z);
-              if(!i) {
-                N_NEXT(4);
-                next = _get2(nx,ny,nz);
-                if(next) div = divs[5]; }
-              else {
-                i = _get(x,y,z);
-                div = divs[5]; } } } } }
-      if(i) {
+    int changes = 0;
+    i = _get(x,y,z);
+    ii = i;
+    changes = (x!=lax) + (y!=lay) + (z!=laz);
+    if (changes>1){
+      ii = _get(x+cox,y+coy,z+coz); }
+      if(ii) {
+        *destcol = ii;
+        pixelset = true;
+        len=lim+0.5f;
+        *destx = x+cox; *desty = y+coy; *destz = z+coz; }
+      if(i && !ii) {
         *destcol = i;
         pixelset = true;
-        len=lim+1;
+        len=lim+0.5f;
         *destx = x; *desty = y; *destz = z; }
-      pos.x += dir.x / div;
-      pos.y += dir.y / div;
-      pos.z += dir.z / div; }
+      pos.x += dir.x;
+      pos.y += dir.y;
+      pos.z += dir.z;
+      lax = x; lay = y; laz = z; }
     else {
       len=lim+1; } }
   if(!pixelset) {
@@ -669,6 +628,60 @@ void cast_ray(float dirx, float diry, float dirz,
     *desty = diry*max_d + posy;
     *destz = dirz*max_d + posz;
     *destcol = 0; } }
+
+void cast_ray_to_pos(float lpx, float lpy, float lpz, 
+              float posx, float posy, float posz,
+              uint *destx, uint *desty, uint *destz, uchar *destcol) {
+  float max_d=sqrtf(powf(lpx-posx,2)+powf(lpy-posy,2)+powf(lpz-posz,2));
+  float len=0, lim=max_d; bool pixelset = false; 
+  float cox,coy,coz; int lax,lay,laz;
+  struct vec3f pos = {posx, posy, posz },
+               dir = {lpx-posx, lpy-posy, lpz-posz };
+  NORM(dir);
+  pos.x += dir.x*2; pos.y += dir.y*2; pos.z += dir.z*2;   
+  dir.x /= 2.0; dir.y /= 2.0; dir.z /= 2.0;   
+  if ((ABS(dir.x)>ABS(dir.y)) && (ABS(dir.x)>ABS(dir.z))){
+    cox = -1*(SIGN(dir.x)); coy = 0; coz = 0; }
+  if ((ABS(dir.y)>ABS(dir.z)) && (ABS(dir.y)>ABS(dir.x))){
+    cox = 0; coy = -1*(SIGN(dir.y)); coz = 0; }
+  if ((ABS(dir.z)>ABS(dir.y)) && (ABS(dir.z)>ABS(dir.y))){
+    cox = 0; coy = 0; coz = -1*(SIGN(dir.z)); }
+  lax = pos.x + 0.5f; lay = pos.y + 0.5f; laz = pos.z + 0.5f;
+  while(len<lim) {
+    uchar next, i, ii;
+    int nx,ny,nz;
+    int x = pos.x + 0.5f, y = pos.y + 0.5f, z = pos.z + 0.5f;
+    len += 0.5f;
+    if(x>=0 && x<xsize && y>=0 && y<ysize && z>=0 && z<zsize) {
+  int changes = 0;  
+    i = _get(x,y,z);
+    ii = i;
+    changes = (x!=lax) + (y!=lay) + (z!=laz);
+    if (changes>1){
+      ii = _get(x+cox,y+coy,z+coz);
+    }
+      if(ii) {
+        *destcol = ii;
+        pixelset = true;
+        len=lim+0.5f;
+        *destx = x+cox; *desty = y+coy; *destz = z+coz; }
+      if(i && !ii) {
+        *destcol = i;
+        pixelset = true;
+        len=lim+0.5f;
+        *destx = x; *desty = y; *destz = z; }
+      pos.x += dir.x;
+      pos.y += dir.y;
+      pos.z += dir.z;
+      lax = x; lay = y; laz = z; }
+    else {
+      len=lim+1; } }
+  if(!pixelset) {
+    *destx = pos.x+0.5f;
+    *desty = pos.y+0.5f;
+    *destz = pos.z+0.5f;
+    *destcol = 0; } }
+
 
 int numCPU = 0;
 void determ_CPU_count() {
@@ -1792,7 +1805,24 @@ static int throw_ray(lua_State *L) {
   py = lua_tonumber(L, 5);
   pz = lua_tonumber(L, 6);
   md = lua_tonumber(L, 7);
-  cast_ray(dx,dy,dz,px,py,pz,md,&rx,&ry,&rz,&ri);
+  cast_ray_to_dir(dx,dy,dz,px,py,pz,md,&rx,&ry,&rz,&ri);
+  lua_pushnumber(L,rx);
+  lua_pushnumber(L,ry);
+  lua_pushnumber(L,rz);
+  lua_pushnumber(L,ri);
+  return 4; }
+
+static int throw_ray_to_pos(lua_State *L) {
+  int n = lua_gettop(L); float lx,ly,lz, px,py,pz;
+  uint rx,ry,rz; uchar ri;
+  if(n!=6) return 0;
+  lx = lua_tonumber(L, 1);
+  ly = lua_tonumber(L, 2);
+  lz = lua_tonumber(L, 3);
+  px = lua_tonumber(L, 4);
+  py = lua_tonumber(L, 5);
+  pz = lua_tonumber(L, 6);
+  cast_ray_to_pos(lx,ly,lz,px,py,pz,&rx,&ry,&rz,&ri);
   lua_pushnumber(L,rx);
   lua_pushnumber(L,ry);
   lua_pushnumber(L,rz);
@@ -1900,6 +1930,8 @@ int init_lua(const char *filename) {
   lua_register(L, "enable_checkers", enable_checkers);
   lua_register(L, "disable_checkers", disable_checkers);
   lua_register(L, "throw_ray", throw_ray);
+  lua_register(L, "throw_ray_to_dir", throw_ray);
+  lua_register(L, "throw_ray_to_pos", throw_ray_to_pos);
   status = luaL_dofile(L, filename);
   report_errors(L, status);
   lua_close(L);

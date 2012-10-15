@@ -1,4 +1,4 @@
-  DOOMMY VOXEL ENGINE v0.9993 - voxel based game engine 
+  DOOMMY VOXEL ENGINE - voxel based game engine 
   which uses only CPU for rendering and Lua for scripting.
 
   COPYRIGHT (C) 2012 jabberx@ymail.com
@@ -352,9 +352,15 @@ to disable this effect, because on powerful CPUs its hard to see it,
 and on slow CPUs this effect is saviour.
 
 x,y,z,index = throw_ray(dirx,diry,dirz,posx,posy,posz,max_dist) - 
-dir must be normalized. Returns voxel position that was hit by ray.
-If starting position is inside non-empty voxel, ray will stop 
-there. Returns 0 if ray reached max_dist and no voxels was found.
+Returns position and color of voxel, that was hit by ray.
+You don't need to divide dir or to alter pos somehow before passing,
+dir just need to be normalized.
+You can use alias of this function: throw_ray_to_dir.
+
+x,y,z,index = throw_ray_to_pos(destx,desty,destz,startx,starty,startz) - 
+Computes ray and returns position and color of voxel, that was hit 
+by that ray. Can be used to calculate lighting (dest - lighting pos,
+startx - voxel pos).
 
 Sound:
 ------
