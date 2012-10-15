@@ -22,10 +22,10 @@
 #include <windows.h>
 #endif
 
-#include <lua.h>               // Lua5.1 or LuaJIT-2.0 used
+#include <lua.h>
 #include <lauxlib.h>
 #include <lualib.h>
-#include <SDL\SDL.h>           // SDL_1.2 used
+#include <SDL\SDL.h>
 #include <SDL\SDL_thread.h>
 
 #include <memory.h>
@@ -583,7 +583,7 @@ void cast_ray_to_dir(float dirx, float diry, float dirz,
               float posx, float posy, float posz, float max_d,
               uint *destx, uint *desty, uint *destz, uchar *destcol) {
   float len=0, lim=max_d; bool pixelset = false;
-  float cox,coy,coz; int lax,lay,laz;
+  float cox=0,coy=0,coz=1; int lax,lay,laz;
   struct vec3f pos = {posx, posy, posz },
                dir = {dirx, diry, dirz };
   pos.x += dir.x*2; pos.y += dir.y*2; pos.z += dir.z*2;
@@ -592,7 +592,7 @@ void cast_ray_to_dir(float dirx, float diry, float dirz,
     cox = -1*(SIGN(dir.x)); coy = 0; coz = 0; }
   if ((ABS(dir.y)>ABS(dir.z)) && (ABS(dir.y)>ABS(dir.x))){
     cox = 0; coy = -1*(SIGN(dir.y)); coz = 0; }
-  if ((ABS(dir.z)>ABS(dir.y)) && (ABS(dir.z)>ABS(dir.y))){
+  if ((ABS(dir.z)>ABS(dir.y)) && (ABS(dir.z)>ABS(dir.x))){
     cox = 0; coy = 0; coz = -1*(SIGN(dir.z)); }
   lax = pos.x + 0.5f; lay = pos.y + 0.5f; laz = pos.z + 0.5f;
   while(len<lim) {
@@ -600,7 +600,7 @@ void cast_ray_to_dir(float dirx, float diry, float dirz,
     int nx,ny,nz;
     int x = pos.x + 0.5f, y = pos.y + 0.5f, z = pos.z + 0.5f;
     len += 1;
-    if(x>=0 && x<xsize && y>=0 && y<ysize && z>=0 && z<zsize) {
+    if(x>=1 && x<=xsize-2 && y>=1 && y<=ysize-2 && z>=1 && z<=zsize-2) {
     int changes = 0;
     i = _get(x,y,z);
     ii = i;
@@ -634,7 +634,7 @@ void cast_ray_to_pos(float lpx, float lpy, float lpz,
               uint *destx, uint *desty, uint *destz, uchar *destcol) {
   float max_d=sqrtf(powf(lpx-posx,2)+powf(lpy-posy,2)+powf(lpz-posz,2));
   float len=0, lim=max_d; bool pixelset = false; 
-  float cox,coy,coz; int lax,lay,laz;
+  float cox=0,coy=0,coz=1; int lax,lay,laz;
   struct vec3f pos = {posx, posy, posz },
                dir = {lpx-posx, lpy-posy, lpz-posz };
   NORM(dir);
@@ -644,7 +644,7 @@ void cast_ray_to_pos(float lpx, float lpy, float lpz,
     cox = -1*(SIGN(dir.x)); coy = 0; coz = 0; }
   if ((ABS(dir.y)>ABS(dir.z)) && (ABS(dir.y)>ABS(dir.x))){
     cox = 0; coy = -1*(SIGN(dir.y)); coz = 0; }
-  if ((ABS(dir.z)>ABS(dir.y)) && (ABS(dir.z)>ABS(dir.y))){
+  if ((ABS(dir.z)>ABS(dir.y)) && (ABS(dir.z)>ABS(dir.x))){
     cox = 0; coy = 0; coz = -1*(SIGN(dir.z)); }
   lax = pos.x + 0.5f; lay = pos.y + 0.5f; laz = pos.z + 0.5f;
   while(len<lim) {
@@ -652,7 +652,7 @@ void cast_ray_to_pos(float lpx, float lpy, float lpz,
     int nx,ny,nz;
     int x = pos.x + 0.5f, y = pos.y + 0.5f, z = pos.z + 0.5f;
     len += 0.5f;
-    if(x>=0 && x<xsize && y>=0 && y<ysize && z>=0 && z<zsize) {
+    if(x>=1 && x<=xsize-2 && y>=1 && y<=ysize-2 && z>=1 && z<=zsize-2) {
   int changes = 0;  
     i = _get(x,y,z);
     ii = i;
