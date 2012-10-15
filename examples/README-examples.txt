@@ -15,3 +15,7 @@ as argument.
 About "example3-data\loop.ogg":
  License: CC BY-ND 3.0
  Author:  jabberx (jabberx@ymail.com)
+
+"example\parts" folder contains small lua files with separate functions,
+you can insert them in your scripts this way:
+  dofile('parts/shadow1.lua')
