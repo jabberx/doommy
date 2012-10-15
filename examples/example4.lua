@@ -60,7 +60,7 @@ function main()
     if is_key_pressed(KEY_S)==1  then fly_forward(-delta/10) end  
     if is_key_pressed(ESCAPE)==1 then break end
   if is_key_pressed(F2)==1 then 
-    take_screenshot('screen_'..os.date("*t")..'.bmp')
+    take_screenshot('screen_'..ticks..'.bmp')
     fake_key_state(F2,0)
   end
     draw_voxels()
