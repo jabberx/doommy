@@ -17,12 +17,12 @@ function shadow1(lx,ly,lz,depth,xsize,ysize,zsize)
     set_window_title("shadow1 "..math.floor(x/xsize*100).."%")
     for y=0,ysize-1 do
       for z=0,zsize-1 do
-        voxel = get_voxel_pal(x,y,z)
-        color_margin = math.floor((voxel-1)/32)*32 + 1
+        voxel = get_voxel_pal(x,y,z)        
         if voxel~=0 then
           hx,hy,hz,i = throw_ray_to_pos(lx,ly,lz,x,y,z)        
           if i~=0 then
             voxel = voxel - depth
+            color_margin = math.floor((voxel-1)/32)*32 + 1
             if voxel < color_margin then voxel = color_margin end
             set_voxel_pal(x,y,z,voxel)
           end
