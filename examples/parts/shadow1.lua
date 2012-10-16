@@ -1,5 +1,5 @@
 --[[
-                       shade1.lua
+                       shadow1.lua
 					   
   Shadowing algorithm. Works fine only with default palette 
 or any palette with compatible scheme (1-32 - from dark* to 
