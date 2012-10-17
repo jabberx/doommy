@@ -88,7 +88,7 @@ int main(int argc, char **argv) {
         printf("example: %s 256 256 32 128 level.dat\n\n",argv[0]);
         printf("slices must be in raw indexed format without header,\n");
         printf("named 0.raw, 1.raw, etc.\n");
-        printf("Use color_table_act.act or microsoft_palette.pal as palette\n");
+        printf("Use color_table_act.act or color_table.pal as palette\n");
         printf("(first color is for empty).\n");
         return 0; }
 
