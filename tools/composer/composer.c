@@ -78,6 +78,14 @@ void save_level(const char *filename) {
     level[xsize*ysize*zsize+i] = pal[i]; }
   fwrite(level, 1, xsize*ysize*zsize+255*3, fl);
   fclose(fl); }
+  
+void save_palette() {
+  FILE *fl = fopen("color_table.act", "wb");
+  int i;
+  unsigned char empty[] = {0xFF,0,0xFF};
+  fwrite(empty, 1, 3, fl);
+  fwrite(pal, 1, 255*3, fl);
+  fclose(fl); }
 
 int main(int argc, char **argv) {
     int i;
@@ -88,8 +96,10 @@ int main(int argc, char **argv) {
         printf("example: %s 256 256 32 128 level.dat\n\n",argv[0]);
         printf("slices must be in raw indexed format without header,\n");
         printf("named 0.raw, 1.raw, etc.\n");
-        printf("Use color_table_act.act or color_table.pal as palette\n");
+        printf("Use color_table.act as palette\n");
         printf("(first color is for empty).\n");
+        printf("Palette will be saved now as color_table.act\n");
+        save_palette();
         return 0; }
 
     xsize = atoi(argv[1]);
@@ -122,6 +132,6 @@ int main(int argc, char **argv) {
 
     save_level(argv[5]);
     printf("Done!\n");
-	
+    
     return 0; }
 
