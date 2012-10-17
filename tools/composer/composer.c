@@ -86,6 +86,15 @@ void save_palette() {
   fwrite(empty, 1, 3, fl);
   fwrite(pal, 1, 255*3, fl);
   fclose(fl); }
+  
+void read_palette() {
+  FILE *fl = fopen("color_table.act", "rb");
+  if (!fl) return;
+  int i;
+  unsigned char empty[] = {0xFF,0,0xFF};
+  fread(empty, 1, 3, fl);
+  fread(pal, 1, 255*3, fl);
+  fclose(fl); }
 
 int main(int argc, char **argv) {
     int i;
@@ -99,9 +108,11 @@ int main(int argc, char **argv) {
         printf("Use color_table.act as palette\n");
         printf("(first color (magenta,FF00FF) is for empty).\n");
         printf("Palette will be saved now as color_table.act\n");
+		printf("You can alter this palette and it will be added to level.\n");
         save_palette();
         return 0; }
-
+	
+	read_palette();
     xsize = atoi(argv[1]);
     zsize = atoi(argv[2]);
     slices = atoi(argv[3]);
