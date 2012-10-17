@@ -97,7 +97,7 @@ int main(int argc, char **argv) {
         printf("slices must be in raw indexed format without header,\n");
         printf("named 0.raw, 1.raw, etc.\n");
         printf("Use color_table.act as palette\n");
-        printf("(first color is for empty).\n");
+        printf("(first color (magenta,FF00FF) is for empty).\n");
         printf("Palette will be saved now as color_table.act\n");
         save_palette();
         return 0; }
