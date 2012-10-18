@@ -1,10 +1,10 @@
-ο»Ώ--[[
+--[[
                     draw_text.lua
 
     example using bimtap font located in parts/courier14.bmp
 ]]
 
-font_txt = "ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz1234567890-=\\!@#$%^&*()_+|[]{};:'\",./<>?`~ΠΠ‘Π’Π“Π”Π•ΠΠ–Π—ΠΠ™ΠΠ›ΠΠΠΠΠ Π΅ΠΆΠ£Π¤Π¥Π¦Π§Π¨Π©ΠªΠ¬Π­Π«Π®Π―Π°Π±Π²Π³Π΄ΠµΡ‘Π¶Π·ΠΈΠΉΠΊΠ»ΠΌΠ½ΠΎΠΏΡ€ΡΡ‚ΡƒΡ„Ρ…Ρ†Ρ‡ΡΡ‰ΡΡΡΡ‹ΡΡ "
+font_txt = "ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz1234567890-=\\!@#$%^&*()_+|[]{};:'\",./<>?`~ΐΑΒΓΔΕ¨ΖΗΘΙΚΛΜΝΞΟΠΡÒΣΤΥΦΧΨΩΪάέΫήίΰαβγδεΈζηθικλμνξοπρςστυφχψωϊόύϋώÿ "
 char_w,char_h,char_m,char_cnt = 11,16,0,160
 font_img = load_image('parts/courier14.bmp',1)
 
