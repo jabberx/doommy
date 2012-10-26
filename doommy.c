@@ -887,7 +887,7 @@ void show_cursor() {SDL_ShowCursor(1);} void hide_cursor() {SDL_ShowCursor(0);}
 void sleep_ms(long ms) {SDL_Delay(ms);}
 
 inline void pixel_set(int x, int y, uchar r, uchar g, uchar b) {
-  y = HEIGHT - y;
+  y = HEIGHT-1 - y;
   ((uchar *)img)[x*4 + y*WIDTH*4 + 0] = b;
   ((uchar *)img)[x*4 + y*WIDTH*4 + 1] = g;
   ((uchar *)img)[x*4 + y*WIDTH*4 + 2] = r; }
